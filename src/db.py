@@ -74,13 +74,13 @@ def connect_to_database():
         database="mi_task"   
     )
     
-def video_history(video_tag, video_summery,video_visual):
+def video_history(video_tag, video_summery,video_visual,output_image_path,filename):
     #return (answer)
     try:
         mydb = connect_to_database()
         mycursor = mydb.cursor()
-        sql1 = "INSERT INTO mi_task.video_data (video_tag, video_summery,video_visual) VALUES (%s, %s, %s)" 
-        val1 = (video_tag, video_summery,video_visual)
+        sql1 = "INSERT INTO mi_task.video_data (video_tag, video_summery,video_visual,image,video_name) VALUES (%s, %s, %s ,%s ,%s)" 
+        val1 = (video_tag, video_summery,video_visual,output_image_path,filename)
 
         mycursor.execute(sql1, val1)
         mydb.commit()
@@ -93,4 +93,4 @@ def video_history(video_tag, video_summery,video_visual):
     
 
     
-video_history('text','math',mas)
+# video_history('text','math',mas)

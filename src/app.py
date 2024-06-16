@@ -106,11 +106,13 @@ def handle_videos(video_path):
     # Load the video file
     video = VideoFileClip(f"D:/ai_work/mindinv/src/uploaded_videos/{filename}")
 
+    
+    filename_new = os.path.splitext(filename)[0]
     audio = video.audio
     # Save the audio to a separate file
-    audio.write_audiofile(f"D:/ai_work/mindinv/src/audio_files/{filename}.wav")
+    audio.write_audiofile(f"D:/ai_work/mindinv/src/audio_files/{filename_new}.wav")
     
-    text = pipe(f'D:/ai_work/mindinv/src/audio_files/{filename}.wav')
+    text = pipe(f'D:/ai_work/mindinv/src/audio_files/{filename_new}.wav')
     #Return a success message
 
     text_summery = text['text']
@@ -118,18 +120,18 @@ def handle_videos(video_path):
 
     # Usage example
     video_path = f"D:/ai_work/mindinv/src/uploaded_videos/{filename}"
-    output_image_path = "D:/ai_work/mindinv/src/uploaded_videos/screenshot.jpg"
+    output_image_path = f"D:/ai_work/mindinv/src/image_files/{filename_new}.jpg"
     capture_screenshot(video_path, output_image_path)
 
     cmd = "ollama"
-    args = ["run", "llava","what is in the image in 20 words?", "D:/ai_work/mindinv/src/uploaded_videos/screenshot.jpg"]
+    args = ["run", "llava","what is in the image in 20 words?", "D:/ai_work/mindinv/src/image_files/screenshot.jpg"]
     message = subprocess.check_output([cmd] + args).decode('utf-8').splitlines()
     print('>>',message[1:2],'<<<')
     video_visual = message[1:2]
     video_visual = video_visual[0].strip()
     #video_visual ='jdfjidfnidjnfdjis'
 
-    video_history(output,text_summery,video_visual)
+    video_history(output,text_summery,video_visual,output_image_path,filename)
 
     return create_dict_and_format(text_summery, output, video_visual)#data#
 
@@ -143,18 +145,3 @@ iface = gr.Interface(
 
 # Launch the interface
 iface.launch()
-
-
-# import gradio as gr
-
-# def video_identity(video):
-#     return video
-
-
-# demo = gr.Interface(video_identity, 
-#                     gr.Video(), 
-#                     "playable_video", 
-#                     )
-
-# if __name__ == "__main__":
-#     demo.launch()
