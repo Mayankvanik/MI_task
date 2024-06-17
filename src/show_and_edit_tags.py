@@ -1,42 +1,21 @@
 import gradio as gr
-from db import user_history
+from db import user_history,connect_to_database
 import mysql.connector
 
-# Mock data for demonstration
-video_new01 = user_history()
-
-def user_history():
-    try:
-        mydb = connect_to_database()
-        mycursor = mydb.cursor()
-
-        sql =  f"""SELECT video_name,video_tag,image FROM mi_task.video_data"""
-        mycursor.execute(sql)
-        result = mycursor.fetchall()
-        return  result 
-
-    except Exception as e:
-        print('Error checking user existence: ', e)
-        return False
+#data for demonstration fetch from sql
+video_new = user_history()
     
-def connect_to_database():
-    return mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="mayankbiker44",
-        database="mi_task"   
-    )
-
 def fetch_video_data():
     video_new = user_history()
     return video_new
-   
+
+#use video_new  for index search so write here db query
 def update_tag(index, new_tag):
     try:
         mydb = connect_to_database()
         mycursor = mydb.cursor()
         sql2 = '''UPDATE mi_task.video_data SET video_tag = %s WHERE video_name = %s'''
-        val2 = (new_tag, video_new01[index][0])
+        val2 = (new_tag, video_new[index][0])
         mycursor.execute(sql2, val2)
         mydb.commit()
 
@@ -44,9 +23,9 @@ def update_tag(index, new_tag):
         print('Error updating tag: ', e)
         return False
 
+#show List of user data in component and edit tag feild
 def display_videos():
-    with gr.Blocks() as demo:
-        video_new = user_history() 
+    with gr.Blocks() as demo: 
         for idx, video in enumerate(video_new):
             with gr.Blocks():
                 refress_button = gr.Button("refresh")

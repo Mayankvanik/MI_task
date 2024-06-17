@@ -1,22 +1,28 @@
-import gradio as gr
-import os
-import shutil
+from langchain.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 from moviepy.editor import *
 from transformers import pipeline
 from langchain_groq import ChatGroq
-from langchain.prompts import PromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from db import video_history
+import gradio as gr
+import os
+import shutil
 import subprocess
 import cv2
+from dotenv import load_dotenv
+load_dotenv()
 
+groq_api_key = os.environ['GROQ_API_KEY']
 
-cmd = "ollama"
+UPLOAD_DIR = "./src/uploaded_videos"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+#llm model for processing
 LLM = ChatGroq(
-    groq_api_key="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",
+    groq_api_key= groq_api_key,
     model="llama3-70b-8192"
 )
-
+#prompt For catagorized tag from audio subtitle
 prompt = PromptTemplate(
     template="""system
     You are a Categorizer By Tag Agent. You are a master at understanding the meaning of context.
@@ -41,12 +47,11 @@ prompt = PromptTemplate(
 )
 category_generator = prompt | LLM | StrOutputParser()
 
+#whisper model run local for speech to text
 pipe = pipeline("automatic-speech-recognition", model="openai/whisper-tiny")
 
-UPLOAD_DIR = "./src/uploaded_videos"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-
+#Capture screenshot from video and save image for visual discription
 def capture_screenshot(video_path, output_image_path):
     # Open the video file
     video_capture = cv2.VideoCapture(video_path)
@@ -82,8 +87,8 @@ def capture_screenshot(video_path, output_image_path):
 
     print(f"Screenshot saved as {output_image_path}")
 
+# Create the dictionary to show user processed output
 def create_dict_and_format(text_summery, output, video_visual):
-    # Create the dictionary
     data = {
         "text_summery": text_summery,
         "Tag": output,
@@ -126,16 +131,17 @@ def handle_videos(video_path):
     video_visual = message[1:2]
     video_visual = video_visual[0].strip()
 
+    #video_history send data to store in sql database
     video_history(tag_name,text_summery,video_visual,output_image_path,filename)
 
     return create_dict_and_format(text_summery, tag_name, video_visual)#data#
 
 # Create the Gradio interface
-iface = gr.Interface(
+gradio_fun = gr.Interface(
     fn=handle_videos, 
     inputs=gr.File(label="Upload Video(s)"), 
     outputs=gr.Textbox(label="Result")
 )
 
 # Launch the interface
-iface.launch()
+gradio_fun.launch()
